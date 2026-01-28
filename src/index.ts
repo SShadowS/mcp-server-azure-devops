@@ -8,6 +8,7 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import dotenv from 'dotenv';
 import { AzureDevOpsConfig } from './shared/types';
 import { AuthenticationMethod } from './shared/auth/auth-factory';
+import { loadToolsConfig, ToolsConfig } from './shared/config';
 
 /**
  * Normalize auth method string to a valid AuthenticationMethod enum value
@@ -71,8 +72,19 @@ function getConfig(): AzureDevOpsConfig {
 
 async function main() {
   try {
+    // Load tools configuration
+    let toolsConfig: ToolsConfig | undefined;
+    try {
+      toolsConfig = loadToolsConfig();
+    } catch (error) {
+      process.stderr.write(
+        `ERROR: Failed to load tools config: ${error instanceof Error ? error.message : String(error)}\n`,
+      );
+      process.exit(1);
+    }
+
     // Create the server with configuration
-    const server = createAzureDevOpsServer(getConfig());
+    const server = createAzureDevOpsServer(getConfig(), toolsConfig);
 
     // Connect to stdio transport
     const transport = new StdioServerTransport();

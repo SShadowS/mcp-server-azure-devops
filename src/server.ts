@@ -7,8 +7,14 @@ import {
 } from '@modelcontextprotocol/sdk/types.js';
 import { WebApi } from 'azure-devops-node-api';
 import { GitVersionType } from 'azure-devops-node-api/interfaces/GitInterfaces';
-import { VERSION } from './shared/config';
+import {
+  VERSION,
+  ToolsConfig,
+  isToolEnabled,
+  DEFAULT_TOOLS_CONFIG,
+} from './shared/config';
 import { AzureDevOpsConfig } from './shared/types';
+import { ToolDefinition } from './shared/types/tool-definition';
 import {
   AzureDevOpsAuthenticationError,
   AzureDevOpsError,
@@ -85,12 +91,32 @@ function safeLog(message: string) {
 export type AzureDevOpsServer = Server;
 
 /**
+ * Options for creating an Azure DevOps MCP Server
+ */
+export interface CreateServerOptions {
+  /**
+   * Azure DevOps configuration
+   */
+  config: AzureDevOpsConfig;
+
+  /**
+   * Tools configuration for enabling/disabling features and tools
+   * If not provided, all tools are enabled
+   */
+  toolsConfig?: ToolsConfig;
+}
+
+/**
  * Create an Azure DevOps MCP Server
  *
  * @param config The Azure DevOps configuration
+ * @param toolsConfig Optional tools configuration for filtering
  * @returns A configured MCP server instance
  */
-export function createAzureDevOpsServer(config: AzureDevOpsConfig): Server {
+export function createAzureDevOpsServer(
+  config: AzureDevOpsConfig,
+  toolsConfig?: ToolsConfig,
+): Server {
   // Validate the configuration
   validateConfig(config);
 
@@ -108,20 +134,28 @@ export function createAzureDevOpsServer(config: AzureDevOpsConfig): Server {
     },
   );
 
+  // Use provided tools config or default (all enabled)
+  const effectiveToolsConfig = toolsConfig || DEFAULT_TOOLS_CONFIG;
+
+  // Combine tools from all features
+  const allTools: ToolDefinition[] = [
+    ...usersTools,
+    ...organizationsTools,
+    ...projectsTools,
+    ...repositoriesTools,
+    ...workItemsTools,
+    ...searchTools,
+    ...pullRequestsTools,
+    ...pipelinesTools,
+    ...wikisTools,
+  ];
+
   // Register the ListTools request handler
   server.setRequestHandler(ListToolsRequestSchema, () => {
-    // Combine tools from all features
-    const tools = [
-      ...usersTools,
-      ...organizationsTools,
-      ...projectsTools,
-      ...repositoriesTools,
-      ...workItemsTools,
-      ...searchTools,
-      ...pullRequestsTools,
-      ...pipelinesTools,
-      ...wikisTools,
-    ];
+    // Filter tools based on configuration
+    const tools = allTools.filter((tool) =>
+      isToolEnabled(tool.name, effectiveToolsConfig),
+    );
 
     return { tools };
   });
@@ -286,6 +320,14 @@ export function createAzureDevOpsServer(config: AzureDevOpsConfig): Server {
   // Register the CallTool request handler
   server.setRequestHandler(CallToolRequestSchema, async (request) => {
     try {
+      // Check if the tool is enabled
+      const toolName = request.params.name;
+      if (!isToolEnabled(toolName, effectiveToolsConfig)) {
+        throw new AzureDevOpsValidationError(
+          `Tool '${toolName}' is disabled by configuration. Check your tools.config.json file.`,
+        );
+      }
+
       // Note: We don't need to validate the presence of arguments here because:
       // 1. The schema validations (via zod.parse) will check for required parameters
       // 2. Default values from environment.ts are applied for optional parameters (projectId, organizationId)

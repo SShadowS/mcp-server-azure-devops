@@ -1,0 +1,126 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Azure DevOps MCP Server Tools Configuration",
+  "description": "Configuration for enabling/disabling features and individual tools",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "JSON Schema reference"
+    },
+    "features": {
+      "type": "object",
+      "description": "Enable or disable entire feature modules. Features default to true if not specified.",
+      "properties": {
+        "users": {
+          "type": "boolean",
+          "description": "User-related tools (get_me)",
+          "default": true
+        },
+        "organizations": {
+          "type": "boolean",
+          "description": "Organization-related tools (list_organizations)",
+          "default": true
+        },
+        "projects": {
+          "type": "boolean",
+          "description": "Project-related tools (list_projects, get_project, get_project_details)",
+          "default": true
+        },
+        "repositories": {
+          "type": "boolean",
+          "description": "Repository-related tools (get_repository, list_repositories, get_file_content, create_branch, create_commit, etc.)",
+          "default": true
+        },
+        "work-items": {
+          "type": "boolean",
+          "description": "Work item-related tools (list_work_items, get_work_item, create_work_item, update_work_item, manage_work_item_link)",
+          "default": true
+        },
+        "search": {
+          "type": "boolean",
+          "description": "Search-related tools (search_code, search_wiki, search_work_items)",
+          "default": true
+        },
+        "pull-requests": {
+          "type": "boolean",
+          "description": "Pull request-related tools (create_pull_request, list_pull_requests, get_pull_request_comments, etc.)",
+          "default": true
+        },
+        "pipelines": {
+          "type": "boolean",
+          "description": "Pipeline-related tools (list_pipelines, get_pipeline, trigger_pipeline, etc.)",
+          "default": true
+        },
+        "wikis": {
+          "type": "boolean",
+          "description": "Wiki-related tools (get_wikis, get_wiki_page, create_wiki, update_wiki_page, etc.)",
+          "default": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "tools": {
+      "type": "object",
+      "description": "Fine-grained tool control",
+      "properties": {
+        "disabled": {
+          "type": "array",
+          "description": "List of individual tool names to disable, even if their feature is enabled",
+          "items": {
+            "type": "string",
+            "enum": [
+              "get_me",
+              "list_organizations",
+              "list_projects",
+              "get_project",
+              "get_project_details",
+              "get_repository",
+              "get_repository_details",
+              "list_repositories",
+              "get_file_content",
+              "get_all_repositories_tree",
+              "get_repository_tree",
+              "create_branch",
+              "create_commit",
+              "list_commits",
+              "list_work_items",
+              "get_work_item",
+              "create_work_item",
+              "update_work_item",
+              "manage_work_item_link",
+              "search_code",
+              "search_wiki",
+              "search_work_items",
+              "create_pull_request",
+              "list_pull_requests",
+              "get_pull_request_comments",
+              "add_pull_request_comment",
+              "update_pull_request",
+              "get_pull_request_changes",
+              "get_pull_request_checks",
+              "update_pull_request_comment",
+              "list_pipelines",
+              "get_pipeline",
+              "list_pipeline_runs",
+              "get_pipeline_run",
+              "download_pipeline_artifact",
+              "pipeline_timeline",
+              "get_pipeline_log",
+              "trigger_pipeline",
+              "get_wikis",
+              "get_wiki_page",
+              "create_wiki",
+              "update_wiki_page",
+              "list_wiki_pages",
+              "create_wiki_page"
+            ]
+          },
+          "default": []
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,17 @@
+{
+  "$schema": "./tools.config.schema.json",
+  "features": {
+    "users": true,
+    "organizations": true,
+    "projects": true,
+    "repositories": true,
+    "work-items": true,
+    "search": true,
+    "pull-requests": true,
+    "pipelines": true,
+    "wikis": true
+  },
+  "tools": {
+    "disabled": []
+  }
+}
