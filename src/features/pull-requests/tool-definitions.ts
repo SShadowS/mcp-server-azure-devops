@@ -6,6 +6,7 @@ import {
   GetPullRequestCommentsSchema,
   AddPullRequestCommentSchema,
   UpdatePullRequestSchema,
+  UpdatePullRequestCommentSchema,
   GetPullRequestChangesSchema,
   GetPullRequestChecksSchema,
 } from './schemas';
@@ -56,5 +57,11 @@ export const pullRequestsTools: ToolDefinition[] = [
       '- Pair with pipeline tools (e.g., get_pipeline_run, pipeline_timeline) to inspect failures in depth.',
     ].join('\n'),
     inputSchema: zodToJsonSchema(GetPullRequestChecksSchema),
+  },
+  {
+    name: 'update_pull_request_comment',
+    description:
+      'Update an existing comment on a pull request thread. Use this to modify a previously posted comment, such as updating an "in progress" status with the final review results.',
+    inputSchema: zodToJsonSchema(UpdatePullRequestCommentSchema),
   },
 ];

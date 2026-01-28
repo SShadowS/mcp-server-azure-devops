@@ -38,6 +38,13 @@ export interface AddCommentResponse {
 }
 
 /**
+ * Response type for update comment operations
+ */
+export interface UpdateCommentResponse {
+  comment: CommentWithStringEnums;
+}
+
+/**
  * Options for creating a pull request
  */
 export interface CreatePullRequestOptions {

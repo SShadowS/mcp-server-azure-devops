@@ -268,6 +268,27 @@ export const GetPullRequestChecksSchema = z.object({
   pullRequestId: z.number().describe('The ID of the pull request'),
 });
 
+/**
+ * Schema for updating a pull request comment
+ */
+export const UpdatePullRequestCommentSchema = z.object({
+  projectId: z
+    .string()
+    .optional()
+    .describe(`The ID or name of the project (Default: ${defaultProject})`),
+  organizationId: z
+    .string()
+    .optional()
+    .describe(`The ID or name of the organization (Default: ${defaultOrg})`),
+  repositoryId: z.string().describe('The ID or name of the repository'),
+  pullRequestId: z.number().describe('The ID of the pull request'),
+  threadId: z.number().describe('The ID of the thread containing the comment'),
+  commentId: z.number().describe('The ID of the comment to update'),
+  content: z
+    .string()
+    .describe('The new content for the comment (markdown supported)'),
+});
+
 export const PullRequestFileChangeSchema = z.object({
   path: z.string().describe('Path of the changed file'),
   patch: z.string().describe('Unified diff of the file'),
