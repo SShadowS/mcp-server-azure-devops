@@ -36,3 +36,8 @@ logs/
 
 # Patches
 diffs/
+
+# AI/Agent tooling
+.claude/
+.serena/
+MCP.md
