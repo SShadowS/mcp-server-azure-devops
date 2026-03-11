@@ -110,10 +110,25 @@ export const GetPullRequestCommentsSchema = z.object({
     .boolean()
     .optional()
     .describe('Whether to include deleted comments'),
-  top: z
-    .number()
+  top: z.number().optional().describe('Maximum number of threads to return'),
+  commentType: z
+    .enum(['all', 'text', 'system'])
     .optional()
-    .describe('Maximum number of threads/comments to return'),
+    .describe(
+      'Filter by comment type. "text" returns only human comments (default), "system" returns only system comments, "all" returns both',
+    ),
+  status: z
+    .enum([
+      'all',
+      'active',
+      'fixed',
+      'wontFix',
+      'closed',
+      'pending',
+      'byDesign',
+    ])
+    .optional()
+    .describe('Filter threads by status. Default: "all" returns all threads'),
 });
 
 /**

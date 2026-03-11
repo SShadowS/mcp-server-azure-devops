@@ -85,6 +85,39 @@ export interface GetPullRequestCommentsOptions {
   threadId?: number;
   includeDeleted?: boolean;
   top?: number;
+  commentType?: 'all' | 'text' | 'system';
+  status?:
+    | 'all'
+    | 'active'
+    | 'fixed'
+    | 'wontFix'
+    | 'closed'
+    | 'pending'
+    | 'byDesign';
+}
+
+/**
+ * Slim comment structure for reduced token usage
+ */
+export interface SlimComment {
+  id?: number;
+  parentCommentId?: number;
+  author: string;
+  authorEmail?: string;
+  content?: string;
+  date?: string;
+  commentType?: string;
+}
+
+/**
+ * Slim thread structure for reduced token usage
+ */
+export interface SlimThread {
+  threadId?: number;
+  status?: string;
+  filePath?: string;
+  lineNumber?: number;
+  comments: SlimComment[];
 }
 
 /**

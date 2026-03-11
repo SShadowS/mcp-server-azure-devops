@@ -2,7 +2,8 @@ import { WebApi } from 'azure-devops-node-api';
 import { AzureDevOpsError } from '../../../shared/errors';
 import {
   GetPullRequestCommentsOptions,
-  CommentThreadWithStringEnums,
+  SlimThread,
+  SlimComment,
 } from '../types';
 import { GitPullRequestCommentThread } from 'azure-devops-node-api/interfaces/GitInterfaces';
 import {
@@ -13,12 +14,8 @@ import {
 /**
  * Get comments from a pull request
  *
- * @param connection The Azure DevOps WebApi connection
- * @param projectId The ID or name of the project
- * @param repositoryId The ID or name of the repository
- * @param pullRequestId The ID of the pull request
- * @param options Options for filtering comments
- * @returns Array of comment threads with their comments
+ * Returns a slim response structure to minimize token usage.
+ * By default, filters out system comments (e.g. "Policy status has been updated").
  */
 export async function getPullRequestComments(
   connection: WebApi,
@@ -26,36 +23,50 @@ export async function getPullRequestComments(
   repositoryId: string,
   pullRequestId: number,
   options: GetPullRequestCommentsOptions,
-): Promise<CommentThreadWithStringEnums[]> {
+): Promise<SlimThread[]> {
   try {
     const gitApi = await connection.getGitApi();
+    const commentTypeFilter = options.commentType ?? 'text';
+    const statusFilter = options.status ?? 'all';
+
+    let threads: GitPullRequestCommentThread[];
 
     if (options.threadId) {
-      // If a specific thread is requested, only return that thread
       const thread = await gitApi.getPullRequestThread(
         repositoryId,
         pullRequestId,
         options.threadId,
         projectId,
       );
-      return thread ? [transformThread(thread)] : [];
+      threads = thread ? [thread] : [];
     } else {
-      // Otherwise, get all threads
-      const threads = await gitApi.getThreads(
-        repositoryId,
-        pullRequestId,
-        projectId,
-        undefined, // iteration
-        options.includeDeleted ? 1 : undefined, // Convert boolean to number (1 = include deleted)
-      );
-
-      // Transform and return all threads (with pagination if top is specified)
-      const transformedThreads = (threads || []).map(transformThread);
-      if (options.top) {
-        return transformedThreads.slice(0, options.top);
-      }
-      return transformedThreads;
+      threads =
+        (await gitApi.getThreads(
+          repositoryId,
+          pullRequestId,
+          projectId,
+          undefined,
+          options.includeDeleted ? 1 : undefined,
+        )) || [];
     }
+
+    // Filter by thread status
+    if (statusFilter !== 'all') {
+      threads = threads.filter((thread) => {
+        const status = transformCommentThreadStatus(thread.status);
+        return status === statusFilter;
+      });
+    }
+
+    // Transform to slim structure and filter comments
+    const slimThreads = threads
+      .map((thread) => toSlimThread(thread, commentTypeFilter))
+      .filter((thread) => thread.comments.length > 0);
+
+    if (options.top) {
+      return slimThreads.slice(0, options.top);
+    }
+    return slimThreads;
   } catch (error) {
     if (error instanceof AzureDevOpsError) {
       throw error;
@@ -67,56 +78,45 @@ export async function getPullRequestComments(
 }
 
 /**
- * Transform a comment thread to include filePath and lineNumber fields
- * @param thread The original comment thread
- * @returns Transformed comment thread with additional fields
+ * Transform a raw API thread into a slim structure, filtering comments by type.
  */
-function transformThread(
+function toSlimThread(
   thread: GitPullRequestCommentThread,
-): CommentThreadWithStringEnums {
-  if (!thread.comments) {
-    return {
-      ...thread,
-      status: transformCommentThreadStatus(thread.status),
-      comments: undefined,
-    };
-  }
+  commentTypeFilter: 'all' | 'text' | 'system',
+): SlimThread {
+  const lineNumber =
+    thread.threadContext?.rightFileStart?.line ??
+    thread.threadContext?.leftFileStart?.line;
 
-  // Get file path and positions from thread context
-  const filePath = thread.threadContext?.filePath;
-  const leftFileStart =
-    thread.threadContext && 'leftFileStart' in thread.threadContext
-      ? thread.threadContext.leftFileStart
-      : undefined;
-  const leftFileEnd =
-    thread.threadContext && 'leftFileEnd' in thread.threadContext
-      ? thread.threadContext.leftFileEnd
-      : undefined;
-  const rightFileStart =
-    thread.threadContext && 'rightFileStart' in thread.threadContext
-      ? thread.threadContext.rightFileStart
-      : undefined;
-  const rightFileEnd =
-    thread.threadContext && 'rightFileEnd' in thread.threadContext
-      ? thread.threadContext.rightFileEnd
-      : undefined;
-
-  // Transform each comment to include the new fields and string enums
-  const transformedComments = thread.comments.map((comment) => ({
-    ...comment,
-    filePath,
-    leftFileStart,
-    leftFileEnd,
-    rightFileStart,
-    rightFileEnd,
-    // Transform enum values to strings
-    commentType: transformCommentType(comment.commentType),
-  }));
+  const comments: SlimComment[] = (thread.comments || [])
+    .filter((comment) => {
+      if (commentTypeFilter === 'all') return true;
+      const type = transformCommentType(comment.commentType);
+      if (commentTypeFilter === 'text') return type !== 'system';
+      return type === 'system';
+    })
+    .map((comment) => {
+      const slim: SlimComment = {
+        id: comment.id,
+        author: comment.author?.displayName ?? 'Unknown',
+        authorEmail: comment.author?.uniqueName,
+        content: comment.content,
+        date:
+          comment.publishedDate?.toISOString?.() ??
+          comment.publishedDate?.toString(),
+        commentType: transformCommentType(comment.commentType),
+      };
+      if (comment.parentCommentId) {
+        slim.parentCommentId = comment.parentCommentId;
+      }
+      return slim;
+    });
 
   return {
-    ...thread,
-    comments: transformedComments,
-    // Transform thread status to string
+    threadId: thread.id,
     status: transformCommentThreadStatus(thread.status),
+    filePath: thread.threadContext?.filePath,
+    lineNumber,
+    comments,
   };
 }

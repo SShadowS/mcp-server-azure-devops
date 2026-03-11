@@ -75,14 +75,11 @@ describe('getPullRequestComments integration', () => {
     }
   });
 
-  test('should get all comment threads from pull request with file path and line number', async () => {
-    // Skip if integration tests should be skipped
+  test('should get all comment threads from pull request with slim structure', async () => {
     if (shouldSkipIntegrationTest() || !connection) {
       console.log('Skipping test due to missing connection');
       return;
     }
-
-    // Skip if repository name is not defined
     if (!repositoryName) {
       console.log('Skipping test due to missing repository name');
       return;
@@ -100,41 +97,35 @@ describe('getPullRequestComments integration', () => {
       },
     );
 
-    // Verify threads were returned
     expect(threads).toBeDefined();
     expect(Array.isArray(threads)).toBe(true);
     expect(threads.length).toBeGreaterThan(0);
 
-    // Verify thread structure
+    // Verify slim thread structure
     const firstThread = threads[0];
-    expect(firstThread.id).toBeDefined();
+    expect(firstThread.threadId).toBeDefined();
+    expect(firstThread.status).toBeDefined();
     expect(firstThread.comments).toBeDefined();
     expect(Array.isArray(firstThread.comments)).toBe(true);
-    expect(firstThread.comments!.length).toBeGreaterThan(0);
+    expect(firstThread.comments.length).toBeGreaterThan(0);
 
-    // Verify comment structure including new fields
-    const firstComment = firstThread.comments![0];
+    // Verify slim comment structure
+    const firstComment = firstThread.comments[0];
     expect(firstComment.content).toBeDefined();
     expect(firstComment.id).toBeDefined();
-    expect(firstComment.publishedDate).toBeDefined();
-    expect(firstComment.author).toBeDefined();
+    expect(firstComment.date).toBeDefined();
+    expect(typeof firstComment.author).toBe('string');
 
-    // Verify new fields are present (may be undefined/null for general comments)
-    expect(firstComment).toHaveProperty('filePath');
-    expect(firstComment).toHaveProperty('rightFileStart');
-    expect(firstComment).toHaveProperty('rightFileEnd');
-    expect(firstComment).toHaveProperty('leftFileStart');
-    expect(firstComment).toHaveProperty('leftFileEnd');
+    // Verify no bloat fields
+    expect(firstThread).not.toHaveProperty('_links');
+    expect(firstComment).not.toHaveProperty('_links');
   }, 30000);
 
-  test('should get a specific comment thread by ID with file path and line number', async () => {
-    // Skip if integration tests should be skipped
+  test('should get a specific comment thread by ID', async () => {
     if (shouldSkipIntegrationTest() || !connection) {
       console.log('Skipping test due to missing connection');
       return;
     }
-
-    // Skip if repository name is not defined
     if (!repositoryName) {
       console.log('Skipping test due to missing repository name');
       return;
@@ -153,46 +144,29 @@ describe('getPullRequestComments integration', () => {
       },
     );
 
-    // Verify only one thread was returned
     expect(threads).toBeDefined();
-    expect(Array.isArray(threads)).toBe(true);
     expect(threads.length).toBe(1);
 
-    // Verify it's the correct thread
     const thread = threads[0];
-    expect(thread.id).toBe(testThreadId);
-    expect(thread.comments).toBeDefined();
-    expect(Array.isArray(thread.comments)).toBe(true);
-    expect(thread.comments!.length).toBeGreaterThan(0);
+    expect(thread.threadId).toBe(testThreadId);
+    expect(thread.comments.length).toBeGreaterThan(0);
 
-    // Verify the comment content matches what we created
-    const comment = thread.comments![0];
+    const comment = thread.comments[0];
     expect(comment.content).toBe(
       `Test comment thread ${timestamp}-${randomSuffix}`,
     );
-
-    // Verify new fields are present (may be undefined/null for general comments)
-    expect(comment).toHaveProperty('filePath');
-    expect(comment).toHaveProperty('rightFileStart');
-    expect(comment).toHaveProperty('rightFileEnd');
-    expect(comment).toHaveProperty('leftFileStart');
-    expect(comment).toHaveProperty('leftFileEnd');
   }, 30000);
 
   test('should handle pagination with top parameter', async () => {
-    // Skip if integration tests should be skipped
     if (shouldSkipIntegrationTest() || !connection) {
       console.log('Skipping test due to missing connection');
       return;
     }
-
-    // Skip if repository name is not defined
     if (!repositoryName) {
       console.log('Skipping test due to missing repository name');
       return;
     }
 
-    // Get all threads first to compare
     const allThreads = await getPullRequestComments(
       connection,
       projectName,
@@ -202,10 +176,10 @@ describe('getPullRequestComments integration', () => {
         projectId: projectName,
         repositoryId: repositoryName,
         pullRequestId,
+        commentType: 'all',
       },
     );
 
-    // Then get with pagination
     const paginatedThreads = await getPullRequestComments(
       connection,
       projectName,
@@ -216,39 +190,24 @@ describe('getPullRequestComments integration', () => {
         repositoryId: repositoryName,
         pullRequestId,
         top: 1,
+        commentType: 'all',
       },
     );
 
-    // Verify pagination
     expect(paginatedThreads).toBeDefined();
-    expect(Array.isArray(paginatedThreads)).toBe(true);
     expect(paginatedThreads.length).toBe(1);
     expect(paginatedThreads.length).toBeLessThanOrEqual(allThreads.length);
 
-    // Verify the thread structure is the same
     const thread = paginatedThreads[0];
-    expect(thread.id).toBeDefined();
-    expect(thread.comments).toBeDefined();
-    expect(Array.isArray(thread.comments)).toBe(true);
-    expect(thread.comments!.length).toBeGreaterThan(0);
-
-    // Verify new fields are present in paginated results
-    const comment = thread.comments![0];
-    expect(comment).toHaveProperty('filePath');
-    expect(comment).toHaveProperty('rightFileStart');
-    expect(comment).toHaveProperty('rightFileEnd');
-    expect(comment).toHaveProperty('leftFileStart');
-    expect(comment).toHaveProperty('leftFileEnd');
+    expect(thread.threadId).toBeDefined();
+    expect(thread.comments.length).toBeGreaterThan(0);
   }, 30000);
 
   test('should handle includeDeleted parameter', async () => {
-    // Skip if integration tests should be skipped
     if (shouldSkipIntegrationTest() || !connection) {
       console.log('Skipping test due to missing connection');
       return;
     }
-
-    // Skip if repository name is not defined
     if (!repositoryName) {
       console.log('Skipping test due to missing repository name');
       return;
@@ -264,24 +223,11 @@ describe('getPullRequestComments integration', () => {
         repositoryId: repositoryName,
         pullRequestId,
         includeDeleted: true,
+        commentType: 'all',
       },
     );
 
-    // We can only verify the call succeeds, as we can't guarantee deleted comments exist
     expect(threads).toBeDefined();
     expect(Array.isArray(threads)).toBe(true);
-
-    // If there are any threads, verify they have the new fields
-    if (threads.length > 0) {
-      const thread = threads[0];
-      if (thread.comments && thread.comments.length > 0) {
-        const comment = thread.comments[0];
-        expect(comment).toHaveProperty('filePath');
-        expect(comment).toHaveProperty('rightFileStart');
-        expect(comment).toHaveProperty('rightFileEnd');
-        expect(comment).toHaveProperty('leftFileStart');
-        expect(comment).toHaveProperty('leftFileEnd');
-      }
-    }
-  }, 30000); // 30 second timeout for integration test
+  }, 30000);
 });

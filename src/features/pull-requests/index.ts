@@ -117,6 +117,8 @@ export const handlePullRequestsRequest: RequestHandler = async (
           threadId: params.threadId,
           includeDeleted: params.includeDeleted,
           top: params.top,
+          commentType: params.commentType,
+          status: params.status,
         },
       );
       return {
