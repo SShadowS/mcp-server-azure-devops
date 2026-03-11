@@ -7,28 +7,44 @@ import {
   AzureDevOpsPermissionError,
 } from '../../../shared/errors';
 
-interface WorkItemCommentAuthor {
-  displayName: string;
-  uniqueName: string;
-  id?: string;
-  imageUrl?: string;
-}
-
-export interface WorkItemComment {
+interface RawWorkItemComment {
   workItemId: number;
   id: number;
   version: number;
   text: string;
-  createdBy: WorkItemCommentAuthor;
+  createdBy: {
+    displayName?: string;
+    uniqueName?: string;
+    [key: string]: unknown;
+  };
   createdDate: string;
-  modifiedBy: WorkItemCommentAuthor;
+  modifiedBy: {
+    displayName?: string;
+    uniqueName?: string;
+    [key: string]: unknown;
+  };
   modifiedDate: string;
 }
 
-export interface WorkItemCommentsResult {
+interface RawWorkItemCommentsResponse {
   totalCount: number;
   count: number;
-  comments: WorkItemComment[];
+  comments: RawWorkItemComment[];
+}
+
+export interface SlimWorkItemComment {
+  id: number;
+  text: string;
+  author: string;
+  authorEmail?: string;
+  createdDate: string;
+  modifiedDate?: string;
+}
+
+export interface SlimWorkItemCommentsResult {
+  totalCount: number;
+  count: number;
+  comments: SlimWorkItemComment[];
 }
 
 export interface GetWorkItemCommentsOptions {
@@ -43,11 +59,12 @@ export interface GetWorkItemCommentsOptions {
  *
  * Uses the Work Item Comments REST API (7.1-preview.4) since the
  * azure-devops-node-api SDK does not expose this endpoint.
+ * Returns a slim response with metadata bloat stripped out.
  */
 export async function getWorkItemComments(
   connection: WebApi,
   options: GetWorkItemCommentsOptions,
-): Promise<WorkItemCommentsResult> {
+): Promise<SlimWorkItemCommentsResult> {
   const { workItemId, projectId, top, orderBy } = options;
   const baseUrl = connection.serverUrl;
 
@@ -66,7 +83,7 @@ export async function getWorkItemComments(
   try {
     const authHeader = await getAuthorizationHeader();
 
-    const response = await axios.get<WorkItemCommentsResult>(url, {
+    const response = await axios.get<RawWorkItemCommentsResponse>(url, {
       params,
       headers: {
         Authorization: authHeader,
@@ -74,7 +91,7 @@ export async function getWorkItemComments(
       },
     });
 
-    return response.data;
+    return toSlimResult(response.data);
   } catch (error) {
     if (error instanceof AzureDevOpsError) {
       throw error;
@@ -107,4 +124,22 @@ export async function getWorkItemComments(
       `Network error when getting work item comments: ${axiosError.message}`,
     );
   }
+}
+
+function toSlimResult(
+  raw: RawWorkItemCommentsResponse,
+): SlimWorkItemCommentsResult {
+  return {
+    totalCount: raw.totalCount,
+    count: raw.count,
+    comments: raw.comments.map((c) => ({
+      id: c.id,
+      text: c.text,
+      author: c.createdBy?.displayName ?? 'Unknown',
+      authorEmail: c.createdBy?.uniqueName,
+      createdDate: c.createdDate,
+      modifiedDate:
+        c.modifiedDate !== c.createdDate ? c.modifiedDate : undefined,
+    })),
+  };
 }

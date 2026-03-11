@@ -60,10 +60,23 @@ describe('getWorkItemComments unit', () => {
       projectId: 'TestProject',
     });
 
-    // Assert
+    // Assert - slim response
     expect(result.totalCount).toBe(2);
     expect(result.comments).toHaveLength(2);
-    expect(result.comments[0].text).toBe('<p>First comment</p>');
+    expect(result.comments[0]).toEqual({
+      id: 1,
+      text: '<p>First comment</p>',
+      author: 'User A',
+      authorEmail: 'usera@test.com',
+      createdDate: '2026-03-01T10:00:00Z',
+      modifiedDate: undefined, // same as createdDate, omitted
+    });
+    // Verify bloat fields are stripped
+    expect(result.comments[0]).not.toHaveProperty('workItemId');
+    expect(result.comments[0]).not.toHaveProperty('version');
+    expect(result.comments[0]).not.toHaveProperty('createdBy');
+    expect(result.comments[0]).not.toHaveProperty('modifiedBy');
+    expect(result.comments[0]).not.toHaveProperty('_links');
     expect(mockedAxios.get).toHaveBeenCalledWith(
       'https://dev.azure.com/test-org/TestProject/_apis/wit/workItems/123/comments',
       expect.objectContaining({
