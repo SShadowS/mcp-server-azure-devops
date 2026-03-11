@@ -117,6 +117,24 @@ export const UpdateWorkItemSchema = z.object({
 });
 
 /**
+ * Schema for getting work item comments
+ */
+export const GetWorkItemCommentsSchema = z.object({
+  workItemId: z.number().describe('The ID of the work item'),
+  projectId: z
+    .string()
+    .optional()
+    .describe(`The ID or name of the project (Default: ${defaultProject})`),
+  top: z.number().optional().describe('Maximum number of comments to return'),
+  orderBy: z
+    .enum(['asc', 'desc'])
+    .optional()
+    .describe(
+      'Sort order by date: "asc" (oldest first) or "desc" (newest first)',
+    ),
+});
+
+/**
  * Schema for managing work item links
  */
 export const ManageWorkItemLinkSchema = z.object({

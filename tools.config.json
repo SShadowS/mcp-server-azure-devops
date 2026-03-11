@@ -1,0 +1,9 @@
+{
+  "$schema": "./tools.config.schema.json",
+  "features": {
+    "wikis": false
+  },
+  "tools": {
+    "disabled": ["search_wiki", "list_organizations", "list_projects", "get_project", "get_project_details"]
+  }
+}

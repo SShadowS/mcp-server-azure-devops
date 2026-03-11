@@ -47,6 +47,7 @@ export const FEATURE_TOOLS: Record<FeatureName, string[]> = {
     'create_work_item',
     'update_work_item',
     'manage_work_item_link',
+    'get_work_item_comments',
   ],
   search: ['search_code', 'search_wiki', 'search_work_items'],
   'pull-requests': [
