@@ -179,7 +179,10 @@ describe('Pipelines Request Handlers', () => {
       } as CallToolRequest;
 
       const response = await handlePipelinesRequest(mockConnection, request);
-      expect(JSON.parse(response.content[0].text as string)).toEqual(mockRun);
+      const parsed = JSON.parse(response.content[0].text as string);
+      // formatPipelineRun adds buildOutcome and converts enums to strings
+      expect(parsed.buildOutcome).toBe('unknown');
+      expect(parsed.id).toBe(123);
       expect(getPipelineRun).toHaveBeenCalledWith(
         mockConnection,
         expect.objectContaining({

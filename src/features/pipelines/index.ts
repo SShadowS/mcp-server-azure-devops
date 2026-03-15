@@ -36,6 +36,7 @@ import { downloadPipelineArtifact } from './download-pipeline-artifact';
 import { getPipelineTimeline } from './pipeline-timeline';
 import { getPipelineLog } from './get-pipeline-log';
 import { triggerPipeline } from './trigger-pipeline';
+import { formatPipelineRun } from './get-pipeline-run/format-run';
 import { defaultProject } from '../../utils/environment';
 
 /**
@@ -101,8 +102,9 @@ export const handlePipelinesRequest: RequestHandler = async (
         ...args,
         projectId: args.projectId ?? defaultProject,
       });
+      const formatted = formatPipelineRun(result);
       return {
-        content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+        content: [{ type: 'text', text: JSON.stringify(formatted, null, 2) }],
       };
     }
     case 'download_pipeline_artifact': {
