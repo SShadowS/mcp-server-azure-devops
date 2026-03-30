@@ -1,0 +1,34 @@
+# Test files
+dist/**/*.spec.*.js
+dist/**/*.spec.*.js.map
+dist/**/*.spec.*.d.ts
+dist/**/__test__/
+
+# Source maps (not needed for production CLI)
+dist/**/*.js.map
+
+# Type declarations (CLI binary, not a library)
+dist/**/*.d.ts
+
+# Development documentation
+docs/superpowers/
+docs/testing/
+
+# Source files
+src/
+tests/
+
+# Build and dev config
+tsconfig.json
+jest.*.config.js
+.eslintrc*
+.prettierrc*
+.prettierignore
+.lint-staged*
+commitlint*
+.husky/
+
+# Environment and git
+.env*
+.git*
+CLAUDE.md

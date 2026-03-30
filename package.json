@@ -9,7 +9,13 @@
   },
   "files": [
     "dist/",
+    "!dist/**/*.spec.*",
+    "!dist/**/__test__/",
+    "!dist/**/*.js.map",
+    "!dist/**/*.d.ts",
     "docs/",
+    "!docs/superpowers/",
+    "!docs/testing/",
     "tools.config.example.json",
     "tools.config.schema.json",
     "LICENSE",
