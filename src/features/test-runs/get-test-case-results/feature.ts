@@ -10,7 +10,7 @@ import {
   AzureDevOpsError,
   AzureDevOpsAuthenticationError,
   AzureDevOpsResourceNotFoundError,
-} from '@/shared/errors';
+} from '../../../shared/errors';
 import { FormattedTestCaseResult } from '../types';
 import { parseStepsXml } from './parse-steps-xml';
 import {
