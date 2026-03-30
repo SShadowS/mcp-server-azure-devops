@@ -11,7 +11,6 @@ import {
   AzureDevOpsAuthenticationError,
   AzureDevOpsResourceNotFoundError,
 } from '@/shared/errors';
-import { defaultProject } from '@/utils/environment';
 import { FormattedTestCaseResult } from '../types';
 import { parseStepsXml } from './parse-steps-xml';
 import {
@@ -23,7 +22,7 @@ import {
 
 export interface GetTestCaseResultsOptions {
   workItemId: number;
-  project?: string;
+  project: string;
   outcomeFilter?: 'failed' | 'not_passed';
 }
 
@@ -31,7 +30,7 @@ export async function getTestCaseResults(
   connection: WebApi,
   options: GetTestCaseResultsOptions,
 ): Promise<FormattedTestCaseResult> {
-  const project = options.project ?? defaultProject;
+  const project = options.project;
 
   try {
     // Step 1: Fetch work item and validate it's a Test Case
@@ -71,6 +70,8 @@ export async function getTestCaseResults(
 
     // Step 3: Query for the latest test result for this test case
     const testApi = await connection.getTestApi();
+    // automatedTestName is required by the SDK interface but not by the REST API;
+    // passing empty string when filtering by testCaseId is safe — the API ignores it.
     const query: TestResultsQuery = {
       resultsFilter: {
         automatedTestName: '',
