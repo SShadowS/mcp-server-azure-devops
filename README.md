@@ -201,6 +201,10 @@ The Azure DevOps MCP server provides a variety of tools for interacting with Azu
 - `get_wikis`: List all wikis in a project
 - `get_wiki_page`: Get content of a specific wiki page as plain text
 
+### Test Tools
+
+- `get_test_case_results`: Get the latest test execution results for a test case work item, including per-step outcomes and failure comments
+
 ### Pull Request Tools
 
 - [`create_pull_request`](https://github.com/tiberriver256/mcp-server-azure-devops/blob/main/docs/tools/pull-requests.md#create_pull_request) - Create a new pull request
