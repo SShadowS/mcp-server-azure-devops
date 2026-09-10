@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.5.0](https://github.com/SShadowS/mcp-server-azure-devops/compare/v0.4.1...v0.5.0) (2026-09-10)
+
+
+### Features
+
+* **config:** add READ_ONLY option to disable all write tools ([0d08229](https://github.com/SShadowS/mcp-server-azure-devops/commit/0d082298f823dc7699f1d65044888b33b21ef855))
+
+
+### Documentation
+
+* add CLAUDE.md and superpowers design docs ([bd08b6f](https://github.com/SShadowS/mcp-server-azure-devops/commit/bd08b6fcdc973e1942740aeef564c3bacf84b6e8))
+
+
 ## [0.1.43](https://github.com/Tiberriver256/mcp-server-azure-devops/compare/mcp-server-azure-devops-v0.1.42...mcp-server-azure-devops-v0.1.43) (2025-11-19)
 
 
