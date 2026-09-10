@@ -34,7 +34,7 @@
         },
         "work-items": {
           "type": "boolean",
-          "description": "Work item-related tools (list_work_items, get_work_item, create_work_item, update_work_item, manage_work_item_link)",
+          "description": "Work item-related tools (list_work_items, get_work_item, get_work_item_comments, create_work_item, update_work_item, manage_work_item_link)",
           "default": true
         },
         "search": {
@@ -55,6 +55,11 @@
         "wikis": {
           "type": "boolean",
           "description": "Wiki-related tools (get_wikis, get_wiki_page, create_wiki, update_wiki_page, etc.)",
+          "default": true
+        },
+        "test-runs": {
+          "type": "boolean",
+          "description": "Test run-related tools (get_test_case_results)",
           "default": true
         }
       },
@@ -89,6 +94,7 @@
               "create_work_item",
               "update_work_item",
               "manage_work_item_link",
+              "get_work_item_comments",
               "search_code",
               "search_wiki",
               "search_work_items",
@@ -113,13 +119,19 @@
               "create_wiki",
               "update_wiki_page",
               "list_wiki_pages",
-              "create_wiki_page"
+              "create_wiki_page",
+              "get_test_case_results"
             ]
           },
           "default": []
         }
       },
       "additionalProperties": false
+    },
+    "readOnly": {
+      "type": "boolean",
+      "description": "Disable every tool that writes to Azure DevOps. Overridden by the AZURE_DEVOPS_READ_ONLY or READ_ONLY environment variable when either is set.",
+      "default": false
     }
   },
   "additionalProperties": false

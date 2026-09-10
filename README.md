@@ -118,6 +118,7 @@ Key environment variables include:
 
 | Variable                       | Description                                                                        | Required                     | Default          |
 | ------------------------------ | ---------------------------------------------------------------------------------- | ---------------------------- | ---------------- |
+| `AZURE_DEVOPS_READ_ONLY`       | Disable all write tools (see [Read-Only Mode](#read-only-mode))                    | No                           | `false`          |
 | `AZURE_DEVOPS_AUTH_METHOD`     | Authentication method (`pat`, `azure-identity`, or `azure-cli`) - case-insensitive | No                           | `azure-identity` |
 | `AZURE_DEVOPS_ORG_URL`         | Full URL to your Azure DevOps organization                                         | Yes                          | -                |
 | `AZURE_DEVOPS_PAT`             | Personal Access Token (for PAT auth)                                               | Only with PAT auth           | -                |
@@ -127,6 +128,30 @@ Key environment variables include:
 | `AZURE_CLIENT_ID`              | Azure AD application ID (for service principals)                                   | Only with service principals | -                |
 | `AZURE_CLIENT_SECRET`          | Azure AD client secret (for service principals)                                    | Only with service principals | -                |
 | `LOG_LEVEL`                    | Logging level (debug, info, warn, error)                                           | No                           | info             |
+
+## Read-Only Mode
+
+Set `READ_ONLY=true` (or `AZURE_DEVOPS_READ_ONLY=true`) to run the server without any ability to change Azure DevOps. Write tools are hidden from the tool list, and calling one returns an error explaining that read-only mode is on.
+
+```bash
+READ_ONLY=true npx -y @tiberriver256/mcp-server-azure-devops
+```
+
+`true`, `1`, and `yes` all enable it, case-insensitively; anything else leaves it off. `AZURE_DEVOPS_READ_ONLY` wins over the unprefixed `READ_ONLY`, and either one overrides the `readOnly` flag in `tools.config.json`.
+
+The following 13 tools are disabled:
+
+| Feature       | Disabled tools                                                                             |
+| ------------- | ------------------------------------------------------------------------------------------ |
+| Repositories  | `create_branch`, `create_commit`                                                            |
+| Work Items    | `create_work_item`, `update_work_item`, `manage_work_item_link`                             |
+| Pull Requests | `create_pull_request`, `add_pull_request_comment`, `update_pull_request`, `update_pull_request_comment` |
+| Pipelines     | `trigger_pipeline`                                                                          |
+| Wikis         | `create_wiki`, `create_wiki_page`, `update_wiki_page`                                       |
+
+`trigger_pipeline` counts as a write because it starts real builds and deployments, even though it stores nothing itself.
+
+Read-only mode only ever removes tools. It cannot re-enable anything that `tools.config.json` has disabled. Any tool the server does not explicitly classify as a read is treated as a write, so a newly added tool stays blocked until it is classified.
 
 ## Troubleshooting Authentication
 

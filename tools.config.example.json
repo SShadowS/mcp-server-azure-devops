@@ -9,9 +9,11 @@
     "search": true,
     "pull-requests": true,
     "pipelines": true,
-    "wikis": true
+    "wikis": true,
+    "test-runs": true
   },
   "tools": {
     "disabled": []
-  }
+  },
+  "readOnly": false
 }

@@ -11,6 +11,7 @@ import {
   VERSION,
   ToolsConfig,
   isToolEnabled,
+  getToolDisabledReason,
   DEFAULT_TOOLS_CONFIG,
 } from './shared/config';
 import { AzureDevOpsConfig } from './shared/types';
@@ -329,10 +330,12 @@ export function createAzureDevOpsServer(
     try {
       // Check if the tool is enabled
       const toolName = request.params.name;
-      if (!isToolEnabled(toolName, effectiveToolsConfig)) {
-        throw new AzureDevOpsValidationError(
-          `Tool '${toolName}' is disabled by configuration. Check your tools.config.json file.`,
-        );
+      const disabledReason = getToolDisabledReason(
+        toolName,
+        effectiveToolsConfig,
+      );
+      if (disabledReason) {
+        throw new AzureDevOpsValidationError(disabledReason);
       }
 
       // Note: We don't need to validate the presence of arguments here because:
